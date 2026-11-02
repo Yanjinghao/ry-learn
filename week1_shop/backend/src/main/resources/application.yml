@@ -9,3 +9,10 @@ spring:
     url: jdbc:mysql://localhost:3306/week1_shop?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
     username: root
     password: admin
+
+ry:
+  jwt:
+    # 至少 32 字符（HS256 要求）
+    secret: week1-shop-jwt-secret-key-32bytes!!
+    # 过期时间：2 小时（毫秒）
+    expire-ms: 7200000
