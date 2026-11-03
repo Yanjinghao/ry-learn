@@ -8,6 +8,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+import com.ry.shop.dto.RegisterRequest;
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/user")
 public class UserController {
@@ -18,12 +21,22 @@ public class UserController {
         this.userService = userService;
     }
 
+    // @PostMapping("/register")
+    // public Result<User> register(@RequestBody Map<String, String> body) {
+    //     User user = userService.register(
+    //         body.get("username"),
+    //         body.get("password"),
+    //         body.get("nickname")
+    //     );
+    //     return Result.ok(user);
+    // }
+
     @PostMapping("/register")
-    public Result<User> register(@RequestBody Map<String, String> body) {
+    public Result<User> register(@Valid @RequestBody RegisterRequest req) {
         User user = userService.register(
-            body.get("username"),
-            body.get("password"),
-            body.get("nickname")
+            req.getUsername(),
+            req.getPassword(),
+            req.getNickname()
         );
         return Result.ok(user);
     }
@@ -44,6 +57,13 @@ public class UserController {
     public Result<Void> updateNickname(@PathVariable Long id,
                                        @RequestBody Map<String, String> body) {
         userService.updateNickname(id, body.get("nickname"));
+        return Result.ok();
+    }
+
+    @PutMapping("/{id}/status")
+    public Result<Void> updateStatus(@PathVariable Long id,
+                                       @RequestBody Map<String, Integer> body) {
+        userService.updateStatus(id, body.get("status"));
         return Result.ok();
     }
 

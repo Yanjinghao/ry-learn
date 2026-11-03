@@ -3,6 +3,9 @@ package com.ry.shop.common;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import org.springframework.validation.BindException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -17,5 +20,14 @@ public class GlobalExceptionHandler {
     public Result<Void> handleOther(Exception e) {
         e.printStackTrace(); // 开发阶段打到控制台方便查
         return Result.fail(500, "服务器异常");
+    }
+
+    /** 参数校验失败会抛出MethodArgumentNotValidException, 转换后抛给前端 */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public Result<Void> handleValid(MethodArgumentNotValidException e) {
+        String msg = e.getBindingResult().getFieldErrors().isEmpty()
+                ? "参数校验失败"
+                : e.getBindingResult().getFieldErrors().get(0).getDefaultMessage();
+        return Result.fail(400, msg);
     }
 }

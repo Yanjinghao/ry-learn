@@ -1,0 +1,7 @@
+spring:
+  datasource:
+    password: 你的密码
+
+ry:
+  jwt:
+    secret: 至少32位的随机字符串!!!!!!!!

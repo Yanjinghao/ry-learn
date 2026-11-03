@@ -4,15 +4,16 @@ server:
 spring:
   application:
     name: week1-shop
-  # 下一环节（70–120）再连 MySQL，这里先占位
+  profiles:
+    active: local   # 本地默认用 application-local.yml
   datasource:
     url: jdbc:mysql://localhost:3306/week1_shop?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
     username: root
-    password: admin
+    password: ${DB_PASSWORD:changeme}   # 真正密码放到 local
 
 ry:
   jwt:
     # 至少 32 字符（HS256 要求）
-    secret: week1-shop-jwt-secret-key-32bytes!!
+    secret: ${JWT_SECRET:please-change-me-to-32-bytes-min!!}  #week1-shop-jwt-secret-key-32bytes!!放local
     # 过期时间：2 小时（毫秒）
     expire-ms: 7200000

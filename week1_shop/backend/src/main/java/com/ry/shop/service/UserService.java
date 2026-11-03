@@ -77,6 +77,19 @@ public class UserService {
         userMapper.updateById(user);
     }
 
+    public void updateStatus(Long id, Integer status) {
+        if(status  == null || (status != 0 && status != 1)) {
+            throw new BusinessException("状态值不合法");
+        }
+        User user = userMapper.selectById(id);
+        if (user == null) {
+            // throw new RuntimeException("用户不存在");
+            throw new BusinessException("用户不存在");
+        }
+        user.setStatus(status);
+        userMapper.updateById(user);
+    }
+
     public void deleteById(Long id) {
         User user = userMapper.selectById(id);
         if (user == null) {
