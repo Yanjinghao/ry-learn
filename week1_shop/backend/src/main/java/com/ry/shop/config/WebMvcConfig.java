@@ -1,0 +1,27 @@
+package com.ry.shop.config;
+
+import com.ry.shop.interceptor.AuthInterceptor;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+@Configuration
+public class WebMvcConfig implements WebMvcConfigurer {
+
+    private final AuthInterceptor authInterceptor;
+
+    public WebMvcConfig(AuthInterceptor authInterceptor) {
+        this.authInterceptor = authInterceptor;
+    }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(authInterceptor)
+                .addPathPatterns("/**")          // 先拦所有
+                .excludePathPatterns(            // 再排除白名单
+                        "/health",
+                        "/api/auth/login",
+                        "/api/user/register"
+                );
+    }
+}
