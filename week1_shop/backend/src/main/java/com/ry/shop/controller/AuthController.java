@@ -9,6 +9,9 @@ import java.util.Map;
 import com.ry.shop.dto.LoginRequest;
 import jakarta.validation.Valid;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+@Tag(name = "登录")
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {

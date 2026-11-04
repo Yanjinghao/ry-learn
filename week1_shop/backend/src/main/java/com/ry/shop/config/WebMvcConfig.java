@@ -17,11 +17,16 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(authInterceptor)
-                .addPathPatterns("/**")          // 先拦所有
+                .addPathPatterns("/**")          // 先添加所有
                 .excludePathPatterns(            // 再排除白名单
                         "/health",
                         "/api/auth/login",
-                        "/api/user/register"
+                        "/api/user/register",
+                        // swagger
+                        "/swagger-ui.html",
+                        "/swagger-ui/**",
+                        "/v3/api-docs",
+                        "/v3/api-docs/**"
                 );
     }
 }

@@ -11,6 +11,9 @@ import java.util.Map;
 import com.ry.shop.dto.RegisterRequest;
 import jakarta.validation.Valid;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+@Tag(name = "用户")
 @RestController
 @RequestMapping("/api/user")
 public class UserController {
