@@ -57,6 +57,7 @@ public class UserService {
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
         // 有传 username 才按用户名模糊查；没传就不过滤
         if (username != null && !username.isBlank()) {
+            // wrapper.like("username", username);
             wrapper.like(User::getUsername, username);
         }
         // 有传 status 才按状态精确查
