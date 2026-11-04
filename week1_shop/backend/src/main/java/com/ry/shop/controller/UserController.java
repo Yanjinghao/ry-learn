@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.ry.shop.dto.RegisterRequest;
+import com.ry.shop.dto.UpdateNicknameRequest;
+import com.ry.shop.dto.UpdateUserStatusRequest;
 import jakarta.validation.Valid;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -56,17 +58,31 @@ public class UserController {
         return Result.ok(userService.list(username, status));
     }
 
+    // @PutMapping("/{id}/nickname")
+    // public Result<Void> updateNickname(@PathVariable Long id,
+    //                                    @RequestBody Map<String, String> body) {
+    //     userService.updateNickname(id, body.get("nickname"));
+    //     return Result.ok();
+    // }
+
     @PutMapping("/{id}/nickname")
     public Result<Void> updateNickname(@PathVariable Long id,
-                                       @RequestBody Map<String, String> body) {
-        userService.updateNickname(id, body.get("nickname"));
+                                    @Valid @RequestBody UpdateNicknameRequest req) {
+        userService.updateNickname(id, req.getNickname());
         return Result.ok();
     }
 
+    // @PutMapping("/{id}/status")
+    // public Result<Void> updateStatus(@PathVariable Long id,
+    //                                    @RequestBody Map<String, Integer> body) {
+    //     userService.updateStatus(id, body.get("status"));
+    //     return Result.ok();
+    // }
+
     @PutMapping("/{id}/status")
     public Result<Void> updateStatus(@PathVariable Long id,
-                                       @RequestBody Map<String, Integer> body) {
-        userService.updateStatus(id, body.get("status"));
+                                    @Valid @RequestBody UpdateUserStatusRequest req) {
+        userService.updateStatus(id, req.getStatus());
         return Result.ok();
     }
 

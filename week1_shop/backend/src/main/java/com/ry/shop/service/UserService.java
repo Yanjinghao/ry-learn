@@ -12,6 +12,8 @@ import com.ry.shop.common.BusinessException;
 
 import java.util.List;
 
+import com.ry.shop.dto.LoginResponse;
+
 @Service
 public class UserService {
 
@@ -99,7 +101,9 @@ public class UserService {
         userMapper.deleteById(id);
     }
 
-    public Map<String, Object> login(String username, String password) {
+    // public Map<String, Object> login(String username, String password) {
+    // 使用DTO
+    public LoginResponse login(String username, String password) {
         // 1. 按用户名查
         User user = userMapper.selectOne(
             new LambdaQueryWrapper<User>().eq(User::getUsername, username)
@@ -120,11 +124,19 @@ public class UserService {
         // 4. 签发 JWT
         String token = jwtUtil.createToken(user.getId(), user.getUsername());
     
-        Map<String, Object> data = new HashMap<>();
-        data.put("token", token);
-        data.put("userId", user.getId());
-        data.put("username", user.getUsername());
-        data.put("nickname", user.getNickname());
-        return data;
+        // Map<String, Object> data = new HashMap<>();
+        // data.put("token", token);
+        // data.put("userId", user.getId());
+        // data.put("username", user.getUsername());
+        // data.put("nickname", user.getNickname());
+        // return data;
+
+        LoginResponse response = new LoginResponse(
+            token,
+            user.getId(),
+            user.getUsername(),
+            user.getNickname()
+        );
+        return response;
     }
 }

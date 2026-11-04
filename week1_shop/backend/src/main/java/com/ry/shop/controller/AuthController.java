@@ -11,6 +11,8 @@ import jakarta.validation.Valid;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 
+import com.ry.shop.dto.LoginResponse;
+
 @Tag(name = "登录")
 @RestController
 @RequestMapping("/api/auth")
@@ -31,9 +33,18 @@ public class AuthController {
     //     return Result.ok(data);
     // }
 
+    // @PostMapping("/login")
+    // public Result<Map<String, Object>> login(@Valid @RequestBody LoginRequest req) {
+    //     Map<String, Object> data = userService.login(
+    //         req.getUsername(),
+    //         req.getPassword()
+    //     );
+    //     return Result.ok(data);
+    // }
+
     @PostMapping("/login")
-    public Result<Map<String, Object>> login(@Valid @RequestBody LoginRequest req) {
-        Map<String, Object> data = userService.login(
+    public Result<LoginResponse> login(@Valid @RequestBody LoginRequest req) {
+        LoginResponse data = userService.login(
             req.getUsername(),
             req.getPassword()
         );
