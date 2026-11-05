@@ -1,4 +1,4 @@
-package com.ry.shop.dto;
+package com.ry.shop.dto.product;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;

@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.*;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 
-import com.ry.shop.dto.ProductCreateRequest;
-import com.ry.shop.dto.ProductUpdateRequest;
+import com.ry.shop.dto.product.ProductCreateRequest;
+import com.ry.shop.dto.product.ProductUpdateRequest;
 import jakarta.validation.Valid;
 
 import io.swagger.v3.oas.annotations.tags.Tag;

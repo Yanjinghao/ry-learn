@@ -1,4 +1,4 @@
-package com.ry.shop.dto;
+package com.ry.shop.dto.auth;
 
 public class LoginResponse {
 

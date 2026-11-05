@@ -1,9 +1,11 @@
-package com.ry.shop.dto;
+package com.ry.shop.dto.category;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public class CategoryUpdateRequest {
+public class CategoryCreateRequest {
 
+    @NotBlank(message = "分类名称不能为空")
     @Size(max = 64, message = "分类名称最多 64 个字符")
     private String name;
 

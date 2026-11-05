@@ -6,12 +6,12 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-import com.ry.shop.dto.LoginRequest;
+import com.ry.shop.dto.auth.LoginRequest;
 import jakarta.validation.Valid;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-import com.ry.shop.dto.LoginResponse;
+import com.ry.shop.dto.auth.LoginResponse;
 
 @Tag(name = "登录")
 @RestController

@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-import com.ry.shop.dto.CategoryCreateRequest;
-import com.ry.shop.dto.CategoryUpdateRequest;
+import com.ry.shop.dto.category.CategoryCreateRequest;
+import com.ry.shop.dto.category.CategoryUpdateRequest;
 import jakarta.validation.Valid;
 
 import io.swagger.v3.oas.annotations.tags.Tag;

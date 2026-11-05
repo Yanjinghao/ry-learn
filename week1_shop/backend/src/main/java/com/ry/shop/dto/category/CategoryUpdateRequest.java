@@ -1,11 +1,9 @@
-package com.ry.shop.dto;
+package com.ry.shop.dto.category;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public class CategoryCreateRequest {
+public class CategoryUpdateRequest {
 
-    @NotBlank(message = "分类名称不能为空")
     @Size(max = 64, message = "分类名称最多 64 个字符")
     private String name;
 
@@ -22,6 +20,7 @@ public class CategoryCreateRequest {
     public Integer getSort() {
         return sort;
     }
+
     public void setSort(Integer sort) {
         this.sort = sort;
     }

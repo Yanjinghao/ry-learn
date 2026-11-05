@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-import com.ry.shop.dto.RegisterRequest;
-import com.ry.shop.dto.UpdateNicknameRequest;
-import com.ry.shop.dto.UpdateUserStatusRequest;
+import com.ry.shop.dto.user.RegisterRequest;
+import com.ry.shop.dto.user.UpdateNicknameRequest;
+import com.ry.shop.dto.user.UpdateUserStatusRequest;
 import jakarta.validation.Valid;
 
 import io.swagger.v3.oas.annotations.tags.Tag;

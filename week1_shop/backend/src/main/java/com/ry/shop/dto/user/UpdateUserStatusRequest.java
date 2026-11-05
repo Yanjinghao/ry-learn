@@ -1,4 +1,4 @@
-package com.ry.shop.dto;
+package com.ry.shop.dto.user;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;

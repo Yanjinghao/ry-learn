@@ -1,4 +1,4 @@
-package com.ry.shop.dto;
+package com.ry.shop.dto.user;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

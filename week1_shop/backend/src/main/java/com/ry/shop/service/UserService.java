@@ -12,7 +12,7 @@ import com.ry.shop.common.BusinessException;
 
 import java.util.List;
 
-import com.ry.shop.dto.LoginResponse;
+import com.ry.shop.dto.auth.LoginResponse;
 
 @Service
 public class UserService {
