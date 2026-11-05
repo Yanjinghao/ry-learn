@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   deleteUserApi,
@@ -9,12 +8,8 @@ import {
   updateNicknameApi,
   updateStatusApi,
 } from '@/api/user'
-import { useAuthStore } from '@/stores/auth'
 import { formatDateTime } from '@/utils/format'
 import type { User } from '@/types/api'
-
-const router = useRouter()
-const auth = useAuthStore()
 
 const loading = ref(false)
 const tableData = ref<User[]>([])
@@ -102,27 +97,18 @@ async function onDelete(row: User) {
   await loadList()
 }
 
-function logout() {
-  auth.clearAuth()
-  router.push('/login')
+function onUserCommand(command: string, row: User) {
+  if (command === 'view') onView(row)
+  else if (command === 'nickname') openNickname(row)
+  else if (command === 'status') onToggleStatus(row)
+  else if (command === 'delete') onDelete(row)
 }
 
 onMounted(loadList)
 </script>
 
 <template>
-  <div class="layout">
-    <header class="header">
-      <div>
-        <h2>用户管理</h2>
-        <span class="sub">对接 list / 详情 / 改昵称 / 启停 / 删除</span>
-      </div>
-      <div class="header-right">
-        <span class="user">{{ auth.user?.nickname || auth.user?.username }}</span>
-        <el-button @click="logout">退出登录</el-button>
-      </div>
-    </header>
-
+  <div>
     <el-card shadow="never">
       <el-form :inline="true" @submit.prevent>
         <el-form-item label="用户名">
@@ -164,18 +150,23 @@ onMounted(loadList)
             {{ formatDateTime(row.createdAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="320" fixed="right">
+        <el-table-column label="操作" width="88" fixed="right" align="center">
           <template #default="{ row }">
-            <el-button link type="primary" @click="onView(row)">详情</el-button>
-            <el-button link type="primary" @click="openNickname(row)">改昵称</el-button>
-            <el-button
-              link
-              :type="row.status === 1 ? 'warning' : 'success'"
-              @click="onToggleStatus(row)"
-            >
-              {{ row.status === 1 ? '禁用' : '启用' }}
-            </el-button>
-            <el-button link type="danger" @click="onDelete(row)">删除</el-button>
+            <el-dropdown trigger="click" @command="(cmd: string) => onUserCommand(cmd, row)">
+              <el-button type="primary" link>操作</el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="view">详情</el-dropdown-item>
+                  <el-dropdown-item command="nickname">改昵称</el-dropdown-item>
+                  <el-dropdown-item command="status">
+                    {{ row.status === 1 ? '禁用' : '启用' }}
+                  </el-dropdown-item>
+                  <el-dropdown-item command="delete" divided>
+                    <span class="danger-text">删除</span>
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </template>
         </el-table-column>
       </el-table>
@@ -212,31 +203,8 @@ onMounted(loadList)
 </template>
 
 <style scoped>
-.layout {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 24px 16px 40px;
-}
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-h2 {
-  margin: 0;
-}
-.sub {
-  color: #64748b;
-  font-size: 13px;
-}
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.user {
-  color: #334155;
-  font-size: 14px;
+.danger-text {
+  color: var(--el-color-danger);
 }
 </style>
+

@@ -5,10 +5,6 @@ const router = createRouter({
   history: createWebHistory(),
   routes: [
     {
-      path: '/',
-      redirect: '/users',
-    },
-    {
       path: '/login',
       name: 'login',
       component: () => import('@/views/LoginView.vue'),
@@ -21,9 +17,29 @@ const router = createRouter({
       meta: { public: true },
     },
     {
-      path: '/users',
-      name: 'users',
-      component: () => import('@/views/UserListView.vue'),
+      path: '/',
+      component: () => import('@/layouts/AdminLayout.vue'),
+      redirect: '/users',
+      children: [
+        {
+          path: 'users',
+          name: 'users',
+          component: () => import('@/views/UserListView.vue'),
+          meta: { title: '用户管理' },
+        },
+        {
+          path: 'categories',
+          name: 'categories',
+          component: () => import('@/views/CategoryListView.vue'),
+          meta: { title: '分类管理' },
+        },
+        {
+          path: 'products',
+          name: 'products',
+          component: () => import('@/views/ProductListView.vue'),
+          meta: { title: '商品管理' },
+        },
+      ],
     },
   ],
 })
