@@ -1,3 +1,5 @@
+// 拦截器配置,排除swagger的接口和不需要鉴权的接口
+
 package com.ry.shop.config;
 
 import com.ry.shop.interceptor.AuthInterceptor;

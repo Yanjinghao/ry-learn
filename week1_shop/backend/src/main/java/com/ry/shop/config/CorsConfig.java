@@ -1,3 +1,5 @@
+// 跨域配置
+
 package com.ry.shop.config;
 
 import org.springframework.context.annotation.Bean;
