@@ -2,7 +2,9 @@ package com.ry.shop.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.ry.shop.entity.Category;
+import com.ry.shop.entity.Product;
 import com.ry.shop.mapper.CategoryMapper;
+import com.ry.shop.mapper.ProductMapper;
 import org.springframework.stereotype.Service;
 import com.ry.shop.common.BusinessException;
 
@@ -12,9 +14,11 @@ import java.util.List;
 public class CategoryService {
 
     private final CategoryMapper categoryMapper;
+    private final ProductMapper productMapper;
 
-    public CategoryService(CategoryMapper categoryMapper) {
+    public CategoryService(CategoryMapper categoryMapper, ProductMapper productMapper) {
         this.categoryMapper = categoryMapper;
+        this.productMapper = productMapper;
     }
 
     public Category create(String name, Integer sort) {
@@ -46,6 +50,13 @@ public class CategoryService {
         Category category = categoryMapper.selectById(id);
         if(category == null) {
             throw new BusinessException("分类不存在");
+        }
+
+        LambdaQueryWrapper<Product> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Product::getCategoryId, id);
+        Long productCount = productMapper.selectCount(wrapper);
+        if(productCount > 0) {
+            throw new BusinessException("分类下有商品，不能删除");
         }
         categoryMapper.deleteById(id);
     }
