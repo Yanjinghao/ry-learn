@@ -1,5 +1,5 @@
 import request from '@/utils/request'
-import type { PageResult, Product, ProductForm, Result } from '@/types/api'
+import type { PageResult, Product, ProductDetail, ProductForm, Result } from '@/types/api'
 
 export function fetchProductPage(params: {
   pageNum?: number
@@ -12,7 +12,7 @@ export function fetchProductPage(params: {
 }
 
 export function fetchProductById(id: number) {
-  return request.get<Result<Product>>(`/api/product/${id}`)
+  return request.get<Result<ProductDetail>>(`/api/product/${id}`)
 }
 
 export function createProductApi(body: ProductForm) {

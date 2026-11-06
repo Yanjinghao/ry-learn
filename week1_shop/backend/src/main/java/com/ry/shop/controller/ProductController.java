@@ -1,6 +1,7 @@
 package com.ry.shop.controller;
 
 import com.ry.shop.common.Result;
+import com.ry.shop.dto.product.ProductDetailVO;
 import com.ry.shop.entity.Product;
 import com.ry.shop.service.ProductService;
 import org.springframework.web.bind.annotation.*;
@@ -54,8 +55,8 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    public Result<Product> getById(@PathVariable Long id) {
-        return Result.ok(productService.getById(id));
+    public Result<ProductDetailVO> getById(@PathVariable Long id) {
+        return Result.ok(productService.getDetailById(id));
     }
 
     @PutMapping("/{id}")

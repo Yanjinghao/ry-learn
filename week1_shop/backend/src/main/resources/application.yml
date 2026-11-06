@@ -10,6 +10,10 @@ spring:
     url: jdbc:mysql://localhost:3306/week1_shop?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
     username: root
     password: ${DB_PASSWORD:changeme}   # 真正密码放到 local
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
 
 ry:
   jwt:
@@ -17,6 +21,9 @@ ry:
     secret: ${JWT_SECRET:please-change-me-to-32-bytes-min!!}  #week1-shop-jwt-secret-key-32bytes!!放local
     # 过期时间：2 小时（毫秒）
     expire-ms: 7200000
+  upload:
+    dir: uploads          # 相对 backend 运行目录, 也就是文件放在根目录下的uploads文件夹
+    url-prefix: /uploads  # 浏览器访问前缀, 也就是文件的访问路径, 域名+路径
 
 springdoc:
   swagger-ui:

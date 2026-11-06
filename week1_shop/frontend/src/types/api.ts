@@ -55,6 +55,11 @@ export interface Product {
   createdAt: string | null
 }
 
+/** 对应后端 ProductDetailVO */
+export interface ProductDetail extends Product {
+  categoryName: string | null
+}
+
 export interface ProductForm {
   categoryId: number | undefined
   name: string

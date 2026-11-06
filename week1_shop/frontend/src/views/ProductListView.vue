@@ -1,15 +1,18 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import type { UploadRequestOptions } from 'element-plus'
 import { fetchCategoryList } from '@/api/category'
+import { uploadFileApi } from '@/api/file'
 import {
   createProductApi,
   deleteProductApi,
+  fetchProductById,
   fetchProductPage,
   updateProductApi,
 } from '@/api/product'
 import { formatDateTime } from '@/utils/format'
-import type { Category, Product, ProductForm } from '@/types/api'
+import type { Category, Product, ProductDetail, ProductForm } from '@/types/api'
 
 const loading = ref(false)
 const tableData = ref<Product[]>([])
@@ -33,6 +36,7 @@ const pager = reactive({
 
 const dialogVisible = ref(false)
 const dialogLoading = ref(false)
+const uploading = ref(false)
 const editingId = ref<number | null>(null)
 const form = reactive<ProductForm>({
   categoryId: undefined,
@@ -42,6 +46,10 @@ const form = reactive<ProductForm>({
   coverUrl: '',
   status: 1,
 })
+
+const detailVisible = ref(false)
+const detailLoading = ref(false)
+const detail = ref<ProductDetail | null>(null)
 
 const categoryNameMap = ref<Record<number, string>>({})
 
@@ -120,6 +128,36 @@ function openEdit(row: Product) {
   dialogVisible.value = true
 }
 
+async function openDetail(row: Product) {
+  detailVisible.value = true
+  detailLoading.value = true
+  detail.value = null
+  try {
+    const { data } = await fetchProductById(row.id)
+    detail.value = data.data
+  } finally {
+    detailLoading.value = false
+  }
+}
+
+async function customUpload(options: UploadRequestOptions) {
+  uploading.value = true
+  try {
+    const { data } = await uploadFileApi(options.file as File)
+    form.coverUrl = data.data.url
+    options.onSuccess?.(data)
+    ElMessage.success('上传成功')
+  } catch (e) {
+    options.onError?.(e as Error)
+  } finally {
+    uploading.value = false
+  }
+}
+
+function clearCover() {
+  form.coverUrl = ''
+}
+
 async function submitForm() {
   if (form.categoryId == null) {
     ElMessage.warning('请选择分类')
@@ -174,7 +212,8 @@ async function onDelete(row: Product) {
 }
 
 function onProductCommand(command: string, row: Product) {
-  if (command === 'edit') openEdit(row)
+  if (command === 'detail') openDetail(row)
+  else if (command === 'edit') openEdit(row)
   else if (command === 'delete') onDelete(row)
 }
 
@@ -259,6 +298,7 @@ onMounted(async () => {
               <el-button type="primary" link>操作</el-button>
               <template #dropdown>
                 <el-dropdown-menu>
+                  <el-dropdown-item command="detail">详情</el-dropdown-item>
                   <el-dropdown-item command="edit">编辑</el-dropdown-item>
                   <el-dropdown-item command="delete" divided>
                     <span class="danger-text">删除</span>
@@ -314,8 +354,26 @@ onMounted(async () => {
         <el-form-item label="库存">
           <el-input-number v-model="form.stock" :min="0" :step="1" />
         </el-form-item>
-        <el-form-item label="封面URL">
-          <el-input v-model="form.coverUrl" placeholder="可先填图片链接，上传周三再做" />
+        <el-form-item label="封面">
+          <div class="cover-box">
+            <el-upload
+              :show-file-list="false"
+              accept="image/jpeg,image/png,image/gif,image/webp"
+              :http-request="customUpload"
+              :disabled="uploading"
+            >
+              <el-button type="primary" :loading="uploading">上传封面</el-button>
+            </el-upload>
+            <el-button v-if="form.coverUrl" link type="danger" @click="clearCover">清除</el-button>
+          </div>
+          <el-image
+            v-if="form.coverUrl"
+            :src="form.coverUrl"
+            fit="cover"
+            style="width: 96px; height: 96px; margin-top: 8px"
+            :preview-src-list="[form.coverUrl]"
+            preview-teleported
+          />
         </el-form-item>
         <el-form-item label="状态">
           <el-radio-group v-model="form.status">
@@ -328,6 +386,37 @@ onMounted(async () => {
         <el-button @click="dialogVisible = false">取消</el-button>
         <el-button type="primary" :loading="dialogLoading" @click="submitForm">保存</el-button>
       </template>
+    </el-dialog>
+
+    <el-dialog v-model="detailVisible" title="商品详情" width="520px">
+      <div v-loading="detailLoading">
+        <el-descriptions v-if="detail" :column="1" border>
+          <el-descriptions-item label="ID">{{ detail.id }}</el-descriptions-item>
+          <el-descriptions-item label="名称">{{ detail.name }}</el-descriptions-item>
+          <el-descriptions-item label="分类">
+            {{ detail.categoryName || categoryLabel(detail.categoryId) }}
+          </el-descriptions-item>
+          <el-descriptions-item label="价格">¥{{ detail.price }}</el-descriptions-item>
+          <el-descriptions-item label="库存">{{ detail.stock }}</el-descriptions-item>
+          <el-descriptions-item label="状态">
+            {{ detail.status === 1 ? '上架' : '下架' }}
+          </el-descriptions-item>
+          <el-descriptions-item label="封面">
+            <el-image
+              v-if="detail.coverUrl"
+              :src="detail.coverUrl"
+              fit="cover"
+              style="width: 96px; height: 96px"
+              :preview-src-list="[detail.coverUrl]"
+              preview-teleported
+            />
+            <span v-else class="muted">无</span>
+          </el-descriptions-item>
+          <el-descriptions-item label="创建时间">
+            {{ formatDateTime(detail.createdAt) }}
+          </el-descriptions-item>
+        </el-descriptions>
+      </div>
     </el-dialog>
   </div>
 </template>
@@ -344,5 +433,10 @@ onMounted(async () => {
 }
 .danger-text {
   color: var(--el-color-danger);
+}
+.cover-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 </style>

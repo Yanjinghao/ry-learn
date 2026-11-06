@@ -9,6 +9,8 @@ import com.ry.shop.mapper.CategoryMapper;
 import com.ry.shop.mapper.ProductMapper;
 import org.springframework.stereotype.Service;
 
+import com.ry.shop.dto.product.ProductDetailVO;
+
 import java.math.BigDecimal;
 
 @Service
@@ -75,12 +77,34 @@ public class ProductService {
         productMapper.deleteById(id);
     }
 
-    public Product getById(Long id) {
+    // public Product getById(Long id) {
+    //     Product product = productMapper.selectById(id);
+    //     if (product == null) {
+    //         throw new BusinessException("商品不存在");
+    //     }
+    //     return product;
+    // }
+
+    public ProductDetailVO getDetailById(Long id) {
         Product product = productMapper.selectById(id);
-        if (product == null) {
+        if(product == null) {
             throw new BusinessException("商品不存在");
         }
-        return product;
+
+        ProductDetailVO vo = new ProductDetailVO();
+        vo.setId(product.getId());
+        vo.setCategoryId(product.getCategoryId());
+        vo.setName(product.getName());
+        vo.setPrice(product.getPrice());
+        vo.setStock(product.getStock());
+        vo.setCoverUrl(product.getCoverUrl());
+        vo.setStatus(product.getStatus());
+        vo.setCreatedAt(product.getCreatedAt());
+
+        Category category = categoryMapper.selectById(product.getCategoryId());
+        vo.setCategoryName(category.getName());
+
+        return vo;
     }
 
     public Page<Product> page(Integer pageNum, Integer pageSize, String name, Long categoryId, Integer status) {
