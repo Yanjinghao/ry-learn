@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 
 import com.ry.shop.dto.product.ProductCreateRequest;
 import com.ry.shop.dto.product.ProductUpdateRequest;
+import com.ry.shop.dto.product.ProductStatusRequest;
 import jakarta.validation.Valid;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -77,6 +78,15 @@ public class ProductController {
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
         productService.deleteById(id);
+        return Result.ok();
+    }
+
+    @PutMapping("/{id}/status")
+    public Result<Void> updateStatus(
+        @PathVariable Long id,
+        @Valid @RequestBody ProductStatusRequest body
+    ) {
+        productService.updateStatus(id, body.getStatus());
         return Result.ok();
     }
 }

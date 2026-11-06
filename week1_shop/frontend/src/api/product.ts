@@ -26,3 +26,7 @@ export function updateProductApi(id: number, body: Partial<ProductForm>) {
 export function deleteProductApi(id: number) {
   return request.delete<Result<null>>(`/api/product/${id}`)
 }
+
+export function updateProductStatusApi(id: number, status: number) {
+  return request.put<Result<null>>(`/api/product/${id}/status`, { status })
+}

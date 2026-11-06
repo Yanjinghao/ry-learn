@@ -95,3 +95,29 @@ CREATE TABLE product (
 - 逻辑删除 vs 物理删除  
 - 给 `category_id` 加索引的原因  
 - 深分页为什么慢（`LIMIT 100000, 10`）
+
+---
+
+## 口述笔记
+
+### 一对多怎么建表
+
+- 一方：`category`（分类）
+- 多方：`product`（商品）
+- 在多方表存外键：`product.category_id` 指向 `category.id`
+- `category_id` 上建索引，便于按分类筛选、关联查询
+
+### 分页怎么写
+
+- 入参：页码、每页条数，以及名称、分类、上架状态等筛选条件
+- 使用 MyBatis-Plus 的 `Page` + 分页插件；条件用 `LambdaQueryWrapper` 拼接
+- SQL 本质是 `LIMIT offset, size`，其中 `offset = (pageNum - 1) * pageSize`
+- 返回列表数据与总条数（如 `records`、`total`），前端据此渲染分页组件
+- 逻辑删除的商品查询时不应出现在列表中
+
+### 文件存在哪
+
+- 上传接口将文件保存到配置的本地目录（如 `uploads/`）
+- 数据库商品字段存可访问路径（如 `/uploads/文件名`）
+- 通过静态资源映射，让浏览器能用该 URL 访问到磁盘上的文件
+- 启动应用时的工作目录会影响相对路径落盘位置，部署时要注意

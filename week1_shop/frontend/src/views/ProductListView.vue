@@ -10,6 +10,7 @@ import {
   fetchProductById,
   fetchProductPage,
   updateProductApi,
+  updateProductStatusApi,
 } from '@/api/product'
 import { formatDateTime } from '@/utils/format'
 import type { Category, Product, ProductDetail, ProductForm } from '@/types/api'
@@ -145,10 +146,17 @@ async function customUpload(options: UploadRequestOptions) {
   try {
     const { data } = await uploadFileApi(options.file as File)
     form.coverUrl = data.data.url
-    options.onSuccess?.(data)
+    options.onSuccess?.(data as never)
     ElMessage.success('上传成功')
   } catch (e) {
-    options.onError?.(e as Error)
+    const err = e instanceof Error ? e : new Error('上传失败')
+    options.onError?.({
+      name: err.name,
+      message: err.message,
+      status: 500,
+      method: 'POST',
+      url: '/api/file/upload',
+    })
   } finally {
     uploading.value = false
   }
@@ -211,9 +219,23 @@ async function onDelete(row: Product) {
   await loadList()
 }
 
+async function onUpdateStatus(row: Product, status: number) {
+  const action = status === 1 ? '上架' : '下架'
+  await ElMessageBox.confirm(`确认${action}商品「${row.name}」？`, '提示', {
+    type: 'warning',
+    confirmButtonText: action,
+    cancelButtonText: '取消',
+  })
+  await updateProductStatusApi(row.id, status)
+  ElMessage.success(`已${action}`)
+  await loadList()
+}
+
 function onProductCommand(command: string, row: Product) {
   if (command === 'detail') openDetail(row)
   else if (command === 'edit') openEdit(row)
+  else if (command === 'on') onUpdateStatus(row, 1)
+  else if (command === 'off') onUpdateStatus(row, 0)
   else if (command === 'delete') onDelete(row)
 }
 
@@ -300,6 +322,8 @@ onMounted(async () => {
                 <el-dropdown-menu>
                   <el-dropdown-item command="detail">详情</el-dropdown-item>
                   <el-dropdown-item command="edit">编辑</el-dropdown-item>
+                  <el-dropdown-item v-if="row.status === 0" command="on">上架</el-dropdown-item>
+                  <el-dropdown-item v-if="row.status === 1" command="off">下架</el-dropdown-item>
                   <el-dropdown-item command="delete" divided>
                     <span class="danger-text">删除</span>
                   </el-dropdown-item>

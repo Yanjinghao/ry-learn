@@ -32,6 +32,15 @@
 ```powershell
 cd D:\workspace\ry\week1_shop\backend
 mvn spring-boot:run
+或者 mvn clean spring-boot:run
+
+打包 mvn clean package -DskipTests
+运行jar包 java -jar target\week1-shop-0.0.1-SNAPSHOT.jar
+或者 java -jar target\week1-shop-0.0.1-SNAPSHOT.jar --spring.profiles.active=local
+
+启动 .\nginx.exe
+重载配置 .\nginx.exe -s reload
+停止 .\nginx.exe -s stop
 ```
 
 ---
@@ -122,3 +131,30 @@ curl -X POST http://127.0.0.1:8080/api/auth/login -H "Content-Type: application/
 - 表结构手写，不要用若依或代码生成器
 - JWT + 拦截器够了，不要一上来上完整 Spring Security
 - 卡住时记录报错，优先解决：连库失败 / 密码没加密 / CORS / 拦截器把登录也拦了
+
+---
+
+## 口述笔记
+
+### 一次登录经过哪些层
+
+1. 前端提交用户名密码 → `POST /api/auth/login`
+2. `AuthController` 接收（可带 `@Valid`）
+3. `UserService.login`：查用户 → 校验密码 → 检查是否禁用 → 签发 JWT
+4. 返回 token 及用户基本信息；前端保存 token
+5. 之后请求在 Header 带 `Authorization: Bearer <token>`
+6. `AuthInterceptor` 校验通过后，才进入业务 Controller → Service → Mapper → 数据库
+
+登录、注册等接口在拦截器白名单中，不要求 token。
+
+### 密码为何用 BCrypt
+
+- 不明文存库，降低库泄露后的直接冒用风险
+- 带盐，相同明文每次哈希结果不同
+- 使用 `matches(明文, 密文)` 校验，而不是字符串直接比较
+
+### token 丢了会怎样
+
+- 请求进不了需登录的接口：拦截器校验失败，返回未登录（如 401）
+- 前端应清除本地登录态并回到登录页
+- token 过期与未携带，表现类似，都需要重新登录

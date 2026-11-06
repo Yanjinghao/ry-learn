@@ -22,9 +22,26 @@ public class ProductService {
         this.categoryMapper = categoryMapper;
     }
 
+    private void assertCategoryExists(Long categoryId) {
+        Category category = categoryMapper.selectById(categoryId);
+        if(category == null) {
+            throw new BusinessException("分类不存在");
+        }
+    }
+
+    private void assertPriceAndStock(BigDecimal price, Integer stock) {
+        if(price == null || price.compareTo(BigDecimal.ZERO) < 0) {
+            throw new BusinessException("价格不能为空且必须大于0");
+        }
+        if(stock == null || stock < 0) {
+            throw new BusinessException("库存不能为空且必须大于0");
+        }
+    }
+
     public Product create(Long categoryId, String name, BigDecimal price,
                           Integer stock, String coverUrl, Integer status) {
         assertCategoryExists(categoryId);
+        assertPriceAndStock(price, stock);
 
         Product product = new Product();
         product.setCategoryId(categoryId);
@@ -45,6 +62,7 @@ public class ProductService {
         }
         if (categoryId != null) {
             assertCategoryExists(categoryId);
+            assertPriceAndStock(price, stock);
             product.setCategoryId(categoryId);
         }
         if (name != null && !name.isBlank()) {
@@ -124,10 +142,15 @@ public class ProductService {
         return productMapper.selectPage(page, wrapper);
     }
 
-    private void assertCategoryExists(Long categoryId) {
-        Category category = categoryMapper.selectById(categoryId);
-        if(category == null) {
-            throw new BusinessException("分类不存在");
+    public void updateStatus(Long id, Integer status) {
+        if(status == null || (status != 0 && status != 1)) {
+            throw new BusinessException("状态值不合法");
         }
+        Product product = productMapper.selectById(id);
+        if(product == null) {
+            throw new BusinessException("商品不存在");
+        }
+        product.setStatus(status);
+        productMapper.updateById(product);
     }
 }
