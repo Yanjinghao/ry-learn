@@ -14,6 +14,12 @@ spring:
     multipart:
       max-file-size: 5MB
       max-request-size: 5MB
+  # 配置静态资源访问路径, 开发环境前端需要使用代理, 生产环境需要配置nginx
+  # 默认是寻找classpath:/static, classpath:/public, classpath:/resources, classpath:/META-INF/resources
+  # 所以目前我放在/resources/static目录下, 不用配置
+  # web:
+  #   resources:
+  #     static-locations: file:D:/www/dist/
 
 ry:
   jwt:

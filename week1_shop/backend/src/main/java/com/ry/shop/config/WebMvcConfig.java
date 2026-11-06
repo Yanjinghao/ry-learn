@@ -40,7 +40,11 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/v3/api-docs",
                         "/v3/api-docs/**",
                         // 静态封面不需要登录
-                        uploadUrlPrefix + "/**"
+                        uploadUrlPrefix + "/**",
+                        "/",
+                        "/index.html",
+                        "/assets/**",
+                        "/favicon.ico"
                 );
     }
 

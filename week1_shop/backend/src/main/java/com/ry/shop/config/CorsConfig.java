@@ -8,7 +8,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
-@Configuration
+// @Configuration   // 先关掉，让 CorsFilter 不注册, 开发环境前端需要使用代理, 生产环境需要配置nginx
 public class CorsConfig {
 
     @Bean
