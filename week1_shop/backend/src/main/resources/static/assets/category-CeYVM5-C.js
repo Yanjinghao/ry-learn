@@ -1,1 +1,0 @@
-import{r as e}from"./request-B3ftjL_o.js";function o(){return e.get("/api/category/list")}function i(t){return e.post("/api/category",t)}function n(t,r){return e.put(`/api/category/${t}`,r)}function p(t){return e.delete(`/api/category/${t}`)}export{i as c,p as d,o as f,n as u};

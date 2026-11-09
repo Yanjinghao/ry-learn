@@ -40,11 +40,14 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/v3/api-docs",
                         "/v3/api-docs/**",
                         // 静态封面不需要登录
-                        uploadUrlPrefix + "/**",
-                        "/",
-                        "/index.html",
-                        "/assets/**",
-                        "/favicon.ico"
+                        uploadUrlPrefix + "/**"
+                        // 前端包丢给后端时要加上（否则打开页面会被 JWT 拦成 token 缺失）
+                        // "/",
+                        // "/index.html",
+                        // "/assets/**",
+                        // "/favicon.ico",
+                        // "/favicon.svg",
+                        // "/icons.svg"
                 );
     }
 

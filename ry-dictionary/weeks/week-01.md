@@ -41,6 +41,43 @@ mvn spring-boot:run
 启动 .\nginx.exe
 重载配置 .\nginx.exe -s reload
 停止 .\nginx.exe -s stop
+
+部署1
+前端包塞进后端, 放在resources的static下
+拦截器config白名单要加上放行前端路径
+打后端jar包: mvn clean package -DskipTests
+启动jar包: java -jar target\week1-shop-0.0.1-SNAPSHOT.jar
+nginx的80端口直接代理到//127.0.0.1:8080就行
+location / {
+    proxy_pass http://127.0.0.1:8080;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+}
+运行nginx.exe, 访问127.0.0.1
+
+部署2
+前后端独立部署
+拦截器config白名单不用管前端
+打后端jar包: mvn clean package -DskipTests
+启动jar包: java -jar target\week1-shop-0.0.1-SNAPSHOT.jar
+nginx：静态指 dist，只把接口和上传反代到 8080
+location / {
+    root   D:/workspace/ry/week1_shop/frontend/dist;
+    index  index.html;
+    try_files $uri $uri/ /index.html;
+}
+location /api/ {
+    proxy_pass http://127.0.0.1:8080;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+}
+location /uploads/ {
+    proxy_pass http://127.0.0.1:8080;
+    proxy_set_header Host $host;
+}
+运行 nginx.exe，访问 http://127.0.0.1
+
+（先起 jar，再起 nginx；改前端一般只需重新 build dist + nginx -s reload，不必重打 jar）
 ```
 
 ---
