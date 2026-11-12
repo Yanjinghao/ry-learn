@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
 
 @Tag(name = "订单")
 @RestController
@@ -27,9 +28,28 @@ public class OrderController {
         return Result.ok(order);
     }
 
+    @GetMapping 
+    public Result<List<Order>> listMine(HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        return Result.ok(orderService.listMine(userId));
+    }
+
     @GetMapping("/{id}")
     public Result<Order> getById(@PathVariable Long id) {
         Order order = orderService.getById(id);
         return Result.ok(order);
+    }
+
+    @PostMapping("/{id}/pay")
+    public Result<Order> pay(@PathVariable Long id, HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        Order order = orderService.pay(userId, id);
+        return Result.ok(order);
+    }
+
+    @PostMapping("/{id}/cancel")
+    public Result<Order> cancel(@PathVariable Long id, HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        return Result.ok(orderService.cancel(userId, id));
     }
 }
