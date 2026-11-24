@@ -20,6 +20,10 @@ spring:
   # web:
   #   resources:
   #     static-locations: file:D:/www/dist/
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
 ry:
   jwt:

@@ -8,18 +8,35 @@ import com.ry.shop.entity.Product;
 import com.ry.shop.mapper.CategoryMapper;
 import com.ry.shop.mapper.ProductMapper;
 import org.springframework.stereotype.Service;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 import com.ry.shop.dto.product.ProductDetailVO;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 
 @Service
 public class ProductService {
+
+    private static final String DETAIL_KEY_PREFIX = "product:detail:";
+
     private final ProductMapper productMapper;
     private final CategoryMapper categoryMapper;
-    public ProductService(ProductMapper productMapper, CategoryMapper categoryMapper) {
+    private final StringRedisTemplate stringRedisTemplate;
+    private final ObjectMapper objectMapper;
+
+    public ProductService(
+        ProductMapper productMapper,
+        CategoryMapper categoryMapper,
+        StringRedisTemplate stringRedisTemplate,
+        ObjectMapper objectMapper
+    ) {
         this.productMapper = productMapper;
         this.categoryMapper = categoryMapper;
+        this.stringRedisTemplate = stringRedisTemplate;
+        this.objectMapper = objectMapper;
     }
 
     private void assertCategoryExists(Long categoryId) {
@@ -84,6 +101,7 @@ public class ProductService {
             product.setStatus(status);
         }
         productMapper.updateById(product);
+        stringRedisTemplate.delete(DETAIL_KEY_PREFIX + id);
     }
 
     public void deleteById(Long id) {
@@ -93,6 +111,7 @@ public class ProductService {
         }
         // 有 @TableLogic：这里实际是 UPDATE deleted=1
         productMapper.deleteById(id);
+        stringRedisTemplate.delete(DETAIL_KEY_PREFIX + id);
     }
 
     // public Product getById(Long id) {
@@ -104,6 +123,17 @@ public class ProductService {
     // }
 
     public ProductDetailVO getDetailById(Long id) {
+        String key = DETAIL_KEY_PREFIX + id;
+        String cached = stringRedisTemplate.opsForValue().get(key);
+        if (cached != null) {
+            try {
+                return objectMapper.readValue(cached, ProductDetailVO.class);
+            } catch (JsonProcessingException e) {
+                // 缓存坏了就当没有，删掉再查库
+                stringRedisTemplate.delete(key);
+            }
+        }
+
         Product product = productMapper.selectById(id);
         if(product == null) {
             throw new BusinessException("商品不存在");
@@ -120,7 +150,19 @@ public class ProductService {
         vo.setCreatedAt(product.getCreatedAt());
 
         Category category = categoryMapper.selectById(product.getCategoryId());
-        vo.setCategoryName(category.getName());
+        if (category != null) {
+            vo.setCategoryName(category.getName());
+        }
+        
+        try {
+            stringRedisTemplate.opsForValue().set(
+                    key,
+                    objectMapper.writeValueAsString(vo),
+                    Duration.ofMinutes(30)
+            );
+        } catch (JsonProcessingException e) {
+            // 写缓存失败不影响主流程
+        }
 
         return vo;
     }
@@ -152,5 +194,6 @@ public class ProductService {
         }
         product.setStatus(status);
         productMapper.updateById(product);
+        stringRedisTemplate.delete(DETAIL_KEY_PREFIX + id);
     }
 }
