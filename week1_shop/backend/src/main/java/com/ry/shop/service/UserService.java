@@ -20,14 +20,17 @@ public class UserService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final PermissionService permissionService;
 
     // 构造器注入（推荐）
     public UserService(UserMapper userMapper,
                         PasswordEncoder passwordEncoder,
-                        JwtUtil jwtUtil) {
+                        JwtUtil jwtUtil,
+                        PermissionService permissionService) {
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
+        this.permissionService = permissionService;
     }
 
     public User register(String username, String password, String nickname) {
@@ -131,12 +134,14 @@ public class UserService {
         // data.put("nickname", user.getNickname());
         // return data;
 
-        LoginResponse response = new LoginResponse(
-            token,
-            user.getId(),
-            user.getUsername(),
-            user.getNickname()
-        );
+        LoginResponse response = new LoginResponse();
+        response.setToken(token);
+        response.setUserId(user.getId());
+        response.setUsername(user.getUsername());
+        response.setNickname(user.getNickname());
+        response.setRoles(permissionService.listRoleCodes(user.getId()));
+        response.setPermissions(permissionService.listPermissions(user.getId()));
+        response.setMenus(permissionService.buildMenuTree(user.getId()));
         return response;
     }
 }
