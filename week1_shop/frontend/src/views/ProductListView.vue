@@ -12,8 +12,10 @@ import {
   updateProductApi,
   updateProductStatusApi,
 } from '@/api/product'
+import { createOrderApi } from '@/api/order'
 import { formatDateTime } from '@/utils/format'
 import type { Category, Product, ProductDetail, ProductForm } from '@/types/api'
+import { useRouter } from 'vue-router'
 
 const loading = ref(false)
 const tableData = ref<Product[]>([])
@@ -51,6 +53,9 @@ const form = reactive<ProductForm>({
 const detailVisible = ref(false)
 const detailLoading = ref(false)
 const detail = ref<ProductDetail | null>(null)
+const orderQty = ref(1)
+const orderLoading = ref(false)
+const router = useRouter()
 
 const categoryNameMap = ref<Record<number, string>>({})
 
@@ -133,11 +138,55 @@ async function openDetail(row: Product) {
   detailVisible.value = true
   detailLoading.value = true
   detail.value = null
+  orderQty.value = 1
   try {
     const { data } = await fetchProductById(row.id)
     detail.value = data.data
   } finally {
     detailLoading.value = false
+  }
+}
+
+async function placeOrder() {
+  if (!detail.value) return
+  if (detail.value.status !== 1) {
+    ElMessage.warning('商品未上架，无法下单')
+    return
+  }
+  if (detail.value.stock <= 0) {
+    ElMessage.warning('库存不足')
+    return
+  }
+  if (orderQty.value < 1) {
+    ElMessage.warning('数量至少为 1')
+    return
+  }
+  if (orderQty.value > detail.value.stock) {
+    ElMessage.warning(`库存仅剩 ${detail.value.stock}`)
+    return
+  }
+
+  await ElMessageBox.confirm(
+    `确认购买「${detail.value.name}」× ${orderQty.value}？`,
+    '下单确认',
+    {
+      type: 'warning',
+      confirmButtonText: '下单',
+      cancelButtonText: '取消',
+    },
+  )
+
+  orderLoading.value = true
+  try {
+    const { data } = await createOrderApi({
+      items: [{ productId: detail.value.id, qty: orderQty.value }],
+    })
+    ElMessage.success(`下单成功：${data.data.orderNo}`)
+    detailVisible.value = false
+    await loadList()
+    router.push('/orders')
+  } finally {
+    orderLoading.value = false
   }
 }
 
@@ -412,7 +461,7 @@ onMounted(async () => {
       </template>
     </el-dialog>
 
-    <el-dialog v-model="detailVisible" title="商品详情" width="520px">
+    <el-dialog v-model="detailVisible" title="商品详情 / 下单" width="520px">
       <div v-loading="detailLoading">
         <el-descriptions v-if="detail" :column="1" border>
           <el-descriptions-item label="ID">{{ detail.id }}</el-descriptions-item>
@@ -439,8 +488,27 @@ onMounted(async () => {
           <el-descriptions-item label="创建时间">
             {{ formatDateTime(detail.createdAt) }}
           </el-descriptions-item>
+          <el-descriptions-item label="购买数量">
+            <el-input-number
+              v-model="orderQty"
+              :min="1"
+              :max="Math.max(detail.stock, 1)"
+              :step="1"
+            />
+          </el-descriptions-item>
         </el-descriptions>
       </div>
+      <template #footer>
+        <el-button @click="detailVisible = false">关闭</el-button>
+        <el-button
+          type="primary"
+          :loading="orderLoading"
+          :disabled="!detail || detail.status !== 1 || detail.stock <= 0"
+          @click="placeOrder"
+        >
+          下单
+        </el-button>
+      </template>
     </el-dialog>
   </div>
 </template>

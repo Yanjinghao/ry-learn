@@ -77,3 +77,24 @@ export interface PageResult<T> {
   current: number
   pages: number
 }
+
+/** 订单状态：0 待支付 / 1 已支付 / 2 已取消 */
+export type OrderStatus = 0 | 1 | 2
+
+export interface Order {
+  id: number
+  orderNo: string
+  userId: number
+  status: OrderStatus | number
+  payAmount: number | string
+  createdAt: string | null
+}
+
+export interface OrderItemCreate {
+  productId: number
+  qty: number
+}
+
+export interface OrderCreate {
+  items: OrderItemCreate[]
+}

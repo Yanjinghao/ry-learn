@@ -6,6 +6,7 @@ import {
   Expand,
   Fold,
   Goods,
+  List,
   SwitchButton,
   User,
 } from '@element-plus/icons-vue'
@@ -25,6 +26,7 @@ const pageTitle = computed(() => {
     '/users': '用户管理',
     '/categories': '分类管理',
     '/products': '商品管理',
+    '/orders': '我的订单',
   }
   return map[route.path] || '后台管理'
 })
@@ -66,6 +68,10 @@ function logout() {
         <el-menu-item index="/products">
           <el-icon><Goods /></el-icon>
           <template #title>商品管理</template>
+        </el-menu-item>
+        <el-menu-item index="/orders">
+          <el-icon><List /></el-icon>
+          <template #title>我的订单</template>
         </el-menu-item>
       </el-menu>
     </el-aside>
