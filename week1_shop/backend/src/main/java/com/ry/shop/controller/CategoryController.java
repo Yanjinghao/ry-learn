@@ -4,6 +4,7 @@ import com.ry.shop.common.Result;
 import com.ry.shop.entity.Category;
 import com.ry.shop.service.CategoryService;
 import org.springframework.web.bind.annotation.*;
+import com.ry.shop.common.RequiresPermission;
 
 import java.util.List;
 import java.util.Map;
@@ -33,17 +34,20 @@ public class CategoryController {
     // }
 
     @PostMapping
+    @RequiresPermission("category:edit")
     public Result<Category> add(@Valid @RequestBody CategoryCreateRequest body) {
         Category category = categoryService.create(body.getName(), body.getSort());
         return Result.ok(category);
     }
 
     @GetMapping("/{id}")
+    @RequiresPermission("category:list")
     public Result<Category> getById(@PathVariable Long id) {
         return Result.ok(categoryService.getById(id));
     }
 
     @GetMapping("/list")
+    @RequiresPermission("category:list")
     public Result<List<Category>> list() {
         return Result.ok(categoryService.list());
     }
@@ -60,6 +64,7 @@ public class CategoryController {
     // }
 
     @PutMapping("/{id}")
+    @RequiresPermission("category:edit")
     public Result<Void> update(@PathVariable Long id,
                                @Valid @RequestBody CategoryUpdateRequest body) {
         categoryService.update(id, body.getName(), body.getSort());
@@ -67,6 +72,7 @@ public class CategoryController {
     }
 
     @DeleteMapping("/{id}")
+    @RequiresPermission("category:edit")
     public Result<Void> delete(@PathVariable Long id) {
         categoryService.deleteById(id);
         return Result.ok();

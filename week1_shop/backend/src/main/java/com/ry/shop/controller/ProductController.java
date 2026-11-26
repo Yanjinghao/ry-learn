@@ -5,6 +5,7 @@ import com.ry.shop.dto.product.ProductDetailVO;
 import com.ry.shop.entity.Product;
 import com.ry.shop.service.ProductService;
 import org.springframework.web.bind.annotation.*;
+import com.ry.shop.common.RequiresPermission;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 
@@ -25,6 +26,7 @@ public class ProductController {
     }
 
     @PostMapping
+    @RequiresPermission("product:edit")
     public Result<Product> add(@Valid @RequestBody ProductCreateRequest body) {
         Product product = productService.create(
             body.getCategoryId(),
@@ -39,6 +41,7 @@ public class ProductController {
 
     // /page 必须写在 /{id} 前面，否则 "page" 会被当成 id
     @GetMapping("/page")
+    @RequiresPermission("product:list")
     public Result<Page<Product>> page(
         @RequestParam(defaultValue = "1") Integer pageNum,
         @RequestParam(defaultValue = "10") Integer pageSize,
@@ -56,11 +59,13 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
+    @RequiresPermission("product:list")
     public Result<ProductDetailVO> getById(@PathVariable Long id) {
         return Result.ok(productService.getDetailById(id));
     }
 
     @PutMapping("/{id}")
+    @RequiresPermission("product:edit")
     public Result<Void> update(@PathVariable Long id,
                                @Valid @RequestBody ProductUpdateRequest body) {
         productService.update(
@@ -76,12 +81,14 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}")
+    @RequiresPermission("product:edit")
     public Result<Void> delete(@PathVariable Long id) {
         productService.deleteById(id);
         return Result.ok();
     }
 
     @PutMapping("/{id}/status")
+    @RequiresPermission("product:edit")
     public Result<Void> updateStatus(
         @PathVariable Long id,
         @Valid @RequestBody ProductStatusRequest body

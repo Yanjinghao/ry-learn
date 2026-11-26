@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import com.ry.shop.common.RequiresPermission;
 
 @Tag(name = "订单")
 @RestController
@@ -21,6 +22,7 @@ public class OrderController {
     }
 
     @PostMapping
+    @RequiresPermission("order:list")
     public Result<Order> create(@RequestBody @Valid OrderCreate body, HttpServletRequest request) {
         // 在jwt拦截器里setAttribute userId 到 request 里, 现在取出来
         Long userId = (Long) request.getAttribute("userId");
@@ -29,18 +31,21 @@ public class OrderController {
     }
 
     @GetMapping 
+    @RequiresPermission("order:list")
     public Result<List<Order>> listMine(HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
         return Result.ok(orderService.listMine(userId));
     }
 
     @GetMapping("/{id}")
+    @RequiresPermission("order:list")
     public Result<Order> getById(@PathVariable Long id) {
         Order order = orderService.getById(id);
         return Result.ok(order);
     }
 
     @PostMapping("/{id}/pay")
+    @RequiresPermission("order:pay")
     public Result<Order> pay(@PathVariable Long id, HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
         Order order = orderService.pay(userId, id);
@@ -48,6 +53,7 @@ public class OrderController {
     }
 
     @PostMapping("/{id}/cancel")
+    @RequiresPermission("order:cancel")
     public Result<Order> cancel(@PathVariable Long id, HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
         return Result.ok(orderService.cancel(userId, id));

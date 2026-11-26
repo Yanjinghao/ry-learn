@@ -4,6 +4,7 @@ import com.ry.shop.common.Result;
 import com.ry.shop.entity.User;
 import com.ry.shop.service.UserService;
 import org.springframework.web.bind.annotation.*;
+import com.ry.shop.common.RequiresPermission;
 
 import java.util.List;
 import java.util.Map;
@@ -47,11 +48,13 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
+    @RequiresPermission("user:list")
     public Result<User> getById(@PathVariable Long id) {
         return Result.ok(userService.getById(id));
     }
 
     @GetMapping("/list")
+    @RequiresPermission("user:list")
     public Result<List<User>> list(
             @RequestParam(required = false) String username,
             @RequestParam(required = false) Integer status) {
@@ -66,6 +69,7 @@ public class UserController {
     // }
 
     @PutMapping("/{id}/nickname")
+    @RequiresPermission("user:edit")
     public Result<Void> updateNickname(@PathVariable Long id,
                                     @Valid @RequestBody UpdateNicknameRequest req) {
         userService.updateNickname(id, req.getNickname());
@@ -80,6 +84,7 @@ public class UserController {
     // }
 
     @PutMapping("/{id}/status")
+    @RequiresPermission("user:edit")
     public Result<Void> updateStatus(@PathVariable Long id,
                                     @Valid @RequestBody UpdateUserStatusRequest req) {
         userService.updateStatus(id, req.getStatus());
@@ -87,6 +92,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
+    @RequiresPermission("user:edit")
     public Result<Void> delete(@PathVariable Long id) {
         userService.deleteById(id);
         return Result.ok();
