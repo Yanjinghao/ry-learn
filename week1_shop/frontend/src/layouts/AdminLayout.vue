@@ -7,36 +7,54 @@ import {
   Fold,
   Goods,
   List,
+  Menu as MenuIcon,
   SwitchButton,
   User,
 } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
+import { logoutAndResetRouter } from '@/router'
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 
 const collapsed = ref(false)
-const asideWidth = computed(() => (collapsed.value ? '64px' : '168px'))
-
+const asideWidth = computed(() => (collapsed.value ? '64px' : '200px'))
 const activeMenu = computed(() => route.path)
 
 const pageTitle = computed(() => {
-  const map: Record<string, string> = {
-    '/users': '用户管理',
-    '/categories': '分类管理',
-    '/products': '商品管理',
-    '/orders': '我的订单',
-  }
-  return map[route.path] || '后台管理'
+  return (route.meta.title as string) || '后台管理'
 })
+
+/** 侧边栏：可折叠的目录 + 子菜单 */
+const sidebarGroups = computed(() => {
+  return auth.menus
+    .map((m) => ({
+      id: m.id,
+      name: m.name,
+      index: `dir-${m.id}`,
+      children: (m.children || []).filter((c) => c.type === 1 && c.path),
+    }))
+    .filter((g) => g.children.length > 0)
+})
+
+/** 默认展开所有目录 */
+const defaultOpeneds = computed(() => sidebarGroups.value.map((g) => g.index))
+
+function menuIcon(path: string | null) {
+  if (path === '/users') return User
+  if (path === '/categories') return Box
+  if (path === '/products') return Goods
+  if (path === '/orders') return List
+  return Goods
+}
 
 function toggleAside() {
   collapsed.value = !collapsed.value
 }
 
 function logout() {
-  auth.clearAuth()
+  logoutAndResetRouter()
   router.push('/login')
 }
 </script>
@@ -50,29 +68,33 @@ function logout() {
       </div>
       <el-menu
         :default-active="activeMenu"
+        :default-openeds="defaultOpeneds"
         :collapse="collapsed"
         :collapse-transition="false"
+        :unique-opened="false"
         router
         background-color="#0f172a"
         text-color="#cbd5e1"
         active-text-color="#ffffff"
       >
-        <el-menu-item index="/users">
-          <el-icon><User /></el-icon>
-          <template #title>用户管理</template>
-        </el-menu-item>
-        <el-menu-item index="/categories">
-          <el-icon><Box /></el-icon>
-          <template #title>分类管理</template>
-        </el-menu-item>
-        <el-menu-item index="/products">
-          <el-icon><Goods /></el-icon>
-          <template #title>商品管理</template>
-        </el-menu-item>
-        <el-menu-item index="/orders">
-          <el-icon><List /></el-icon>
-          <template #title>我的订单</template>
-        </el-menu-item>
+        <el-sub-menu
+          v-for="group in sidebarGroups"
+          :key="group.id"
+          :index="group.index"
+        >
+          <template #title>
+            <el-icon><MenuIcon /></el-icon>
+            <span>{{ group.name }}</span>
+          </template>
+          <el-menu-item
+            v-for="item in group.children"
+            :key="item.id"
+            :index="item.path!"
+          >
+            <el-icon><component :is="menuIcon(item.path)" /></el-icon>
+            <template #title>{{ item.name }}</template>
+          </el-menu-item>
+        </el-sub-menu>
       </el-menu>
     </el-aside>
 
@@ -130,8 +152,9 @@ function logout() {
   border-right: none;
   width: 100% !important;
 }
+.aside :deep(.el-sub-menu__title),
 .aside :deep(.el-menu-item) {
-  padding-left: 16px !important;
+  color: #cbd5e1;
 }
 .topbar {
   display: flex;

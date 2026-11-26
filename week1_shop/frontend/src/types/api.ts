@@ -14,11 +14,27 @@ export interface User {
   createdAt: string | null
 }
 
+/** 对应后端 MenuVO */
+export interface MenuNode {
+  id: number
+  parentId: number
+  name: string
+  type: number
+  path: string | null
+  component: string | null
+  perms: string | null
+  sort: number | null
+  children?: MenuNode[]
+}
+
 export interface LoginResult {
   token: string
   userId: number
   username: string
   nickname: string | null
+  roles: string[]
+  permissions: string[]
+  menus: MenuNode[]
 }
 
 export interface LoginForm {

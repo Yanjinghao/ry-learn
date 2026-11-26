@@ -29,7 +29,8 @@ async function onSubmit() {
     const { data } = await loginApi(form)
     auth.setAuth(data.data)
     ElMessage.success('登录成功')
-    const redirect = (route.query.redirect as string) || '/users'
+    // 动态路由在 beforeEach 里根据 menus 注册
+    const redirect = (route.query.redirect as string) || auth.homePath
     router.replace(redirect)
   } finally {
     loading.value = false

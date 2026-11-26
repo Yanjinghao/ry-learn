@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { registerDynamicRoutes, removeDynamicRoutes } from '@/router/dynamicRoutes'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -18,47 +19,43 @@ const router = createRouter({
     },
     {
       path: '/',
+      name: 'layout',
       component: () => import('@/layouts/AdminLayout.vue'),
-      redirect: '/users',
-      children: [
-        {
-          path: 'users',
-          name: 'users',
-          component: () => import('@/views/UserListView.vue'),
-          meta: { title: '用户管理' },
-        },
-        {
-          path: 'categories',
-          name: 'categories',
-          component: () => import('@/views/CategoryListView.vue'),
-          meta: { title: '分类管理' },
-        },
-        {
-          path: 'products',
-          name: 'products',
-          component: () => import('@/views/ProductListView.vue'),
-          meta: { title: '商品管理' },
-        },
-        {
-          path: 'orders',
-          name: 'orders',
-          component: () => import('@/views/OrderListView.vue'),
-          meta: { title: '我的订单' },
-        },
-      ],
+      children: [],
     },
   ],
 })
 
 router.beforeEach((to) => {
   const auth = useAuthStore()
+
   if (!to.meta.public && !auth.isLogin) {
     return { path: '/login', query: { redirect: to.fullPath } }
   }
-  if ((to.path === '/login' || to.path === '/register') && auth.isLogin) {
-    return { path: '/users' }
+
+  // 已登录：用本地 menus 注册动态路由（刷新后必须再 add 一次）
+  if (auth.isLogin && !auth.routesReady) {
+    registerDynamicRoutes(router, auth.menus)
+    auth.markRoutesReady()
+    return { ...to, replace: true }
   }
+
+  if ((to.path === '/login' || to.path === '/register') && auth.isLogin) {
+    return { path: auth.homePath }
+  }
+
+  // 进布局根路径时，跳到第一个有权限的菜单
+  if (auth.isLogin && to.name === 'layout') {
+    return { path: auth.homePath }
+  }
+
   return true
 })
+
+export function logoutAndResetRouter() {
+  const auth = useAuthStore()
+  removeDynamicRoutes(router)
+  auth.clearAuth()
+}
 
 export default router
