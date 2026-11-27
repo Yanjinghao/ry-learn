@@ -343,7 +343,9 @@ onMounted(async () => {
         <el-form-item>
           <el-button type="primary" @click="onSearch">查询</el-button>
           <el-button @click="onReset">重置</el-button>
-          <el-button type="success" @click="openCreate">新增商品</el-button>
+          <el-button v-permission="'product:edit'" type="success" @click="openCreate">
+            新增商品
+          </el-button>
         </el-form-item>
       </el-form>
 
@@ -393,10 +395,28 @@ onMounted(async () => {
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item command="detail">详情</el-dropdown-item>
-                  <el-dropdown-item command="edit">编辑</el-dropdown-item>
-                  <el-dropdown-item v-if="row.status === 0" command="on">上架</el-dropdown-item>
-                  <el-dropdown-item v-if="row.status === 1" command="off">下架</el-dropdown-item>
-                  <el-dropdown-item command="delete" divided>
+                  <el-dropdown-item v-permission="'product:edit'" command="edit">
+                    编辑
+                  </el-dropdown-item>
+                  <el-dropdown-item
+                    v-if="row.status === 0"
+                    v-permission="'product:edit'"
+                    command="on"
+                  >
+                    上架
+                  </el-dropdown-item>
+                  <el-dropdown-item
+                    v-if="row.status === 1"
+                    v-permission="'product:edit'"
+                    command="off"
+                  >
+                    下架
+                  </el-dropdown-item>
+                  <el-dropdown-item
+                    v-permission="'product:edit'"
+                    command="delete"
+                    divided
+                  >
                     <span class="danger-text">删除</span>
                   </el-dropdown-item>
                 </el-dropdown-menu>

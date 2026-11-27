@@ -92,7 +92,9 @@ onMounted(loadList)
   <div>
     <el-card shadow="never">
       <div class="toolbar">
-        <el-button type="primary" @click="openCreate">新增分类</el-button>
+        <el-button v-permission="'category:edit'" type="primary" @click="openCreate">
+          新增分类
+        </el-button>
         <el-button @click="loadList">刷新</el-button>
       </div>
 
@@ -102,7 +104,11 @@ onMounted(loadList)
         <el-table-column prop="sort" label="排序" width="100" />
         <el-table-column label="操作" width="88" fixed="right" align="center">
           <template #default="{ row }">
-            <el-dropdown trigger="click" @command="(cmd: string) => onCategoryCommand(cmd, row)">
+            <el-dropdown
+              v-permission="'category:edit'"
+              trigger="click"
+              @command="(cmd: string) => onCategoryCommand(cmd, row)"
+            >
               <el-button type="primary" link>操作</el-button>
               <template #dropdown>
                 <el-dropdown-menu>

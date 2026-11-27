@@ -128,6 +128,7 @@ onMounted(() => {
             <el-button type="primary" link @click="openDetail(row)">详情</el-button>
             <template v-if="row.status === 0">
               <el-button
+                v-permission="'order:pay'"
                 type="success"
                 link
                 :loading="actionLoadingId === row.id"
@@ -136,6 +137,7 @@ onMounted(() => {
                 支付
               </el-button>
               <el-button
+                v-permission="'order:cancel'"
                 type="danger"
                 link
                 :loading="actionLoadingId === row.id"

@@ -74,8 +74,11 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem(MENUS_KEY)
   }
 
-  /** 是否有某个权限字（周五按钮权限也能用） */
-  function hasPermission(perm: string) {
+  /** 是否有权限字；传数组表示有任一即可 */
+  function hasPermission(perm: string | string[]) {
+    if (Array.isArray(perm)) {
+      return perm.some((p) => permissions.value.includes(p))
+    }
     return permissions.value.includes(perm)
   }
 

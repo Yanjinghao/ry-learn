@@ -157,11 +157,17 @@ onMounted(loadList)
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item command="view">详情</el-dropdown-item>
-                  <el-dropdown-item command="nickname">改昵称</el-dropdown-item>
-                  <el-dropdown-item command="status">
+                  <el-dropdown-item v-permission="'user:edit'" command="nickname">
+                    改昵称
+                  </el-dropdown-item>
+                  <el-dropdown-item v-permission="'user:edit'" command="status">
                     {{ row.status === 1 ? '禁用' : '启用' }}
                   </el-dropdown-item>
-                  <el-dropdown-item command="delete" divided>
+                  <el-dropdown-item
+                    v-permission="'user:edit'"
+                    command="delete"
+                    divided
+                  >
                     <span class="danger-text">删除</span>
                   </el-dropdown-item>
                 </el-dropdown-menu>
