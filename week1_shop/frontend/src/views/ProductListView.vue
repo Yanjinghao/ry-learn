@@ -54,6 +54,8 @@ const form = reactive<ProductForm>({
 const detailVisible = ref(false)
 const detailLoading = ref(false)
 const detail = ref<ProductDetail | null>(null)
+/** view=只读详情；order=可下单/加购 */
+const detailMode = ref<'view' | 'order'>('view')
 const orderQty = ref(1)
 const orderLoading = ref(false)
 const router = useRouter()
@@ -136,7 +138,8 @@ function openEdit(row: Product) {
   dialogVisible.value = true
 }
 
-async function openDetail(row: Product) {
+async function loadDetail(row: Product, mode: 'view' | 'order') {
+  detailMode.value = mode
   detailVisible.value = true
   detailLoading.value = true
   detail.value = null
@@ -147,6 +150,16 @@ async function openDetail(row: Product) {
   } finally {
     detailLoading.value = false
   }
+}
+
+/** 只读详情，不能下单 */
+function openDetail(row: Product) {
+  return loadDetail(row, 'view')
+}
+
+/** 打开下单弹窗（原详情+购买操作） */
+function openOrder(row: Product) {
+  return loadDetail(row, 'order')
 }
 
 function assertCanBuy() {
@@ -305,6 +318,7 @@ async function onUpdateStatus(row: Product, status: number) {
 
 function onProductCommand(command: string, row: Product) {
   if (command === 'detail') openDetail(row)
+  else if (command === 'order') openOrder(row)
   else if (command === 'edit') openEdit(row)
   else if (command === 'on') onUpdateStatus(row, 1)
   else if (command === 'off') onUpdateStatus(row, 0)
@@ -395,6 +409,12 @@ onMounted(async () => {
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item command="detail">详情</el-dropdown-item>
+                  <el-dropdown-item
+                    v-permission="'order:list'"
+                    command="order"
+                  >
+                    下单
+                  </el-dropdown-item>
                   <el-dropdown-item v-permission="'product:edit'" command="edit">
                     编辑
                   </el-dropdown-item>
@@ -504,7 +524,11 @@ onMounted(async () => {
       </template>
     </el-dialog>
 
-    <el-dialog v-model="detailVisible" title="商品详情 / 下单" width="520px">
+    <el-dialog
+      v-model="detailVisible"
+      :title="detailMode === 'order' ? '商品下单' : '商品详情'"
+      width="520px"
+    >
       <div v-loading="detailLoading">
         <el-descriptions v-if="detail" :column="1" border>
           <el-descriptions-item label="ID">{{ detail.id }}</el-descriptions-item>
@@ -531,7 +555,7 @@ onMounted(async () => {
           <el-descriptions-item label="创建时间">
             {{ formatDateTime(detail.createdAt) }}
           </el-descriptions-item>
-          <el-descriptions-item label="购买数量">
+          <el-descriptions-item v-if="detailMode === 'order'" label="购买数量">
             <el-input-number
               v-model="orderQty"
               :min="1"
@@ -543,20 +567,22 @@ onMounted(async () => {
       </div>
       <template #footer>
         <el-button @click="detailVisible = false">关闭</el-button>
-        <el-button
-          :disabled="!detail || detail.status !== 1 || detail.stock <= 0"
-          @click="addToCart"
-        >
-          加入购物车
-        </el-button>
-        <el-button
-          type="primary"
-          :loading="orderLoading"
-          :disabled="!detail || detail.status !== 1 || detail.stock <= 0"
-          @click="placeOrder"
-        >
-          立即下单
-        </el-button>
+        <template v-if="detailMode === 'order'">
+          <el-button
+            :disabled="!detail || detail.status !== 1 || detail.stock <= 0"
+            @click="addToCart"
+          >
+            加入购物车
+          </el-button>
+          <el-button
+            type="primary"
+            :loading="orderLoading"
+            :disabled="!detail || detail.status !== 1 || detail.stock <= 0"
+            @click="placeOrder"
+          >
+            立即下单
+          </el-button>
+        </template>
       </template>
     </el-dialog>
   </div>
