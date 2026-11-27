@@ -13,6 +13,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import com.ry.shop.dto.auth.LoginResponse;
 
+import com.ry.shop.common.Log;
+
 @Tag(name = "登录")
 @RestController
 @RequestMapping("/api/auth")
@@ -43,6 +45,7 @@ public class AuthController {
     // }
 
     @PostMapping("/login")
+    @Log("登录")
     public Result<LoginResponse> login(@Valid @RequestBody LoginRequest req) {
         LoginResponse data = userService.login(
             req.getUsername(),
