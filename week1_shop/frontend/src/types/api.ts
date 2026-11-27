@@ -97,13 +97,24 @@ export interface PageResult<T> {
 /** 订单状态：0 待支付 / 1 已支付 / 2 已取消 */
 export type OrderStatus = 0 | 1 | 2
 
+export interface OrderItem {
+  orderId?: number
+  productId: number
+  productName: string | null
+  qty: number
+  price: number | string
+}
+
 export interface Order {
   id: number
   orderNo: string
   userId: number
+  /** 列表 JOIN 带出；仅管理端展示 */
+  username?: string | null
   status: OrderStatus | number
   payAmount: number | string
   createdAt: string | null
+  items?: OrderItem[]
 }
 
 export interface OrderItemCreate {

@@ -14,6 +14,7 @@ import {
 } from '@/api/product'
 import { createOrderApi } from '@/api/order'
 import { formatDateTime } from '@/utils/format'
+import { useCartStore } from '@/stores/cart'
 import type { Category, Product, ProductDetail, ProductForm } from '@/types/api'
 import { useRouter } from 'vue-router'
 
@@ -56,6 +57,7 @@ const detail = ref<ProductDetail | null>(null)
 const orderQty = ref(1)
 const orderLoading = ref(false)
 const router = useRouter()
+const cart = useCartStore()
 
 const categoryNameMap = ref<Record<number, string>>({})
 
@@ -147,24 +149,45 @@ async function openDetail(row: Product) {
   }
 }
 
-async function placeOrder() {
-  if (!detail.value) return
+function assertCanBuy() {
+  if (!detail.value) return false
   if (detail.value.status !== 1) {
-    ElMessage.warning('商品未上架，无法下单')
-    return
+    ElMessage.warning('商品未上架，无法购买')
+    return false
   }
   if (detail.value.stock <= 0) {
     ElMessage.warning('库存不足')
-    return
+    return false
   }
   if (orderQty.value < 1) {
     ElMessage.warning('数量至少为 1')
-    return
+    return false
   }
   if (orderQty.value > detail.value.stock) {
     ElMessage.warning(`库存仅剩 ${detail.value.stock}`)
-    return
+    return false
   }
+  return true
+}
+
+/** 加入购物车，支持多商品再统一结算 */
+function addToCart() {
+  if (!detail.value || !assertCanBuy()) return
+  cart.addItem({
+    productId: detail.value.id,
+    name: detail.value.name,
+    price: Number(detail.value.price),
+    stock: detail.value.stock,
+    qty: orderQty.value,
+    coverUrl: detail.value.coverUrl,
+  })
+  ElMessage.success(`已加入购物车：${detail.value.name} × ${orderQty.value}`)
+  detailVisible.value = false
+}
+
+/** 立即下单：仍支持单商品一键下单 */
+async function placeOrder() {
+  if (!detail.value || !assertCanBuy()) return
 
   await ElMessageBox.confirm(
     `确认购买「${detail.value.name}」× ${orderQty.value}？`,
@@ -501,12 +524,18 @@ onMounted(async () => {
       <template #footer>
         <el-button @click="detailVisible = false">关闭</el-button>
         <el-button
+          :disabled="!detail || detail.status !== 1 || detail.stock <= 0"
+          @click="addToCart"
+        >
+          加入购物车
+        </el-button>
+        <el-button
           type="primary"
           :loading="orderLoading"
           :disabled="!detail || detail.status !== 1 || detail.stock <= 0"
           @click="placeOrder"
         >
-          下单
+          立即下单
         </el-button>
       </template>
     </el-dialog>

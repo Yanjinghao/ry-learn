@@ -2,6 +2,8 @@ package com.ry.shop.service;
 
 import com.ry.shop.common.BusinessException;
 import com.ry.shop.dto.order.OrderItemCreate;
+import com.ry.shop.dto.order.OrderItemVO;
+import com.ry.shop.dto.order.OrderVO;
 import com.ry.shop.entity.Order;
 import com.ry.shop.entity.OrderItem;
 import com.ry.shop.entity.Product;
@@ -10,6 +12,10 @@ import com.ry.shop.mapper.OrderMapper;
 import com.ry.shop.mapper.ProductMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -28,11 +34,26 @@ public class OrderService {
     private final OrderMapper orderMapper;
     private final OrderItemMapper orderItemMapper;
     private final ProductMapper productMapper;
+    private final PermissionService permissionService;
 
-    public OrderService(OrderMapper orderMapper, OrderItemMapper orderItemMapper, ProductMapper productMapper) {
+    public OrderService(OrderMapper orderMapper,
+                        OrderItemMapper orderItemMapper,
+                        ProductMapper productMapper,
+                        PermissionService permissionService) {
         this.orderMapper = orderMapper;
         this.orderItemMapper = orderItemMapper;
         this.productMapper = productMapper;
+        this.permissionService = permissionService;
+    }
+
+    /**非admin用户只能查看自己的订单*/
+    private void assertOrderAccess(Long userId, Order order) {
+        if (permissionService.isAdmin(userId)) {
+            return;
+        }
+        if (!order.getUserId().equals(userId)) {
+            throw new BusinessException("无权操作该订单");
+        }
     }
 
     // 生成订单号
@@ -101,36 +122,71 @@ public class OrderService {
 
     @Transactional
     public Order pay(Long userId, Long orderId) {
-        Order order = getById(orderId);
-        if (!order.getUserId().equals(userId)) {
-            throw new BusinessException("无权操作该订单");
+        Order order = orderMapper.selectById(orderId);
+        if (order == null) {
+            throw new BusinessException("订单不存在");
         }
+        assertOrderAccess(userId, order);
+
         if (order.getStatus() == null || order.getStatus() != STATUS_PENDING) {
             throw new BusinessException("只有待支付订单可以支付");
         }
+        
         order.setStatus(STATUS_PAID);
         orderMapper.updateById(order);
         return orderMapper.selectById(orderId);
     }
 
-    public Order getById(Long id) {
+    public Order getById(Long userId, Long id) {
         Order order = orderMapper.selectById(id);
         if (order == null) {
             throw new BusinessException("订单不存在");
         }
+        assertOrderAccess(userId, order);
         return order;
     }
 
-    /** 当前登录用户的订单列表（只看自己的） */
-    public List<Order> listMine(Long userId) {
+    /**
+     * 订单列表（数据权限）
+     * admin → 全部；其他人 → 只看自己的
+     * 注：username 请用 JOIN 一次查出（见课程说明），这里先只查订单表
+     */
+    public List<OrderVO> listForUser(Long userId) {
         if (userId == null) {
             throw new BusinessException("未登录");
         }
-        return orderMapper.selectList(
-            new LambdaQueryWrapper<Order>()
-                .eq(Order::getUserId, userId)
-                .orderByDesc(Order::getId)
-        );
+
+        // admin → 传 null 不加 user_id 条件；普通人 → 传自己的 id
+        Long onlyUserId = permissionService.isAdmin(userId) ? null : userId;
+        List<OrderVO> orders = orderMapper.selectListWithUsername(onlyUserId);
+        if (orders.isEmpty()) {
+            return orders;
+        }
+
+        // 收集订单 id
+        List<Long> orderIds = new ArrayList<>();
+        for (OrderVO o : orders) {
+            orderIds.add(o.getId());
+        }
+
+        // 一次查出所有这些订单的明细（带商品名）
+        List<OrderItemVO> allItems = orderItemMapper.selectByOrderIds(orderIds);
+
+        // 按 orderId 分组挂到对应订单上
+        Map<Long, List<OrderItemVO>> itemsByOrderId = new HashMap<>();
+        for (OrderItemVO item : allItems) {
+            Long oid = item.getOrderId();
+            if (!itemsByOrderId.containsKey(oid)) {
+                itemsByOrderId.put(oid, new ArrayList<>());
+            }
+            itemsByOrderId.get(oid).add(item);
+        }
+
+        for (OrderVO o : orders) {
+            List<OrderItemVO> items = itemsByOrderId.get(o.getId());
+            o.setItems(items != null ? items : new ArrayList<>());
+        }
+        return orders;
     }
 
     /**
@@ -138,10 +194,12 @@ public class OrderService {
      */
     @Transactional
     public Order cancel(Long userId, Long orderId) {
-        Order order = getById(orderId);
-        if (!order.getUserId().equals(userId)) {
-            throw new BusinessException("无权操作该订单");
+        Order order = orderMapper.selectById(orderId);
+        if (order == null) {
+            throw new BusinessException("订单不存在");
         }
+        assertOrderAccess(userId, order);
+        
         // 非法流转就拒绝
         if (order.getStatus() == null || order.getStatus() != STATUS_PENDING) {
             throw new BusinessException("只有待支付订单可以取消");

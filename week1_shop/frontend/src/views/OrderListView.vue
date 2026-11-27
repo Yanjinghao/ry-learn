@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   cancelOrderApi,
@@ -7,11 +7,18 @@ import {
   payOrderApi,
 } from '@/api/order'
 import { formatDateTime } from '@/utils/format'
+import { useAuthStore } from '@/stores/auth'
 import type { Order } from '@/types/api'
+
+const auth = useAuthStore()
+const isAdmin = computed(() => auth.roles.includes('admin'))
 
 const loading = ref(false)
 const tableData = ref<Order[]>([])
 const actionLoadingId = ref<number | null>(null)
+
+const detailVisible = ref(false)
+const detailOrder = ref<Order | null>(null)
 
 function statusLabel(status: number) {
   if (status === 0) return '待支付'
@@ -35,6 +42,11 @@ async function loadList() {
   } finally {
     loading.value = false
   }
+}
+
+function openDetail(row: Order) {
+  detailOrder.value = row
+  detailVisible.value = true
 }
 
 async function onPay(row: Order) {
@@ -78,12 +90,21 @@ onMounted(() => {
   <div>
     <el-card shadow="never">
       <div class="toolbar">
-        <span class="hint">仅展示当前登录用户的订单；待支付可支付或取消。</span>
+        <span class="hint">
+          {{ isAdmin ? '管理员可查看全部订单。' : '仅展示你自己的订单。' }}
+          待支付可支付或取消。
+        </span>
         <el-button type="primary" :loading="loading" @click="loadList">刷新</el-button>
       </div>
 
       <el-table v-loading="loading" :data="tableData" border stripe>
         <el-table-column prop="id" label="ID" width="70" />
+        <el-table-column
+          v-if="isAdmin"
+          prop="username"
+          label="用户名"
+          min-width="120"
+        />
         <el-table-column prop="orderNo" label="订单号" min-width="180" />
         <el-table-column label="金额" width="120">
           <template #default="{ row }">
@@ -102,11 +123,12 @@ onMounted(() => {
             {{ formatDateTime(row.createdAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="180" fixed="right" align="center">
+        <el-table-column label="操作" width="220" fixed="right" align="center">
           <template #default="{ row }">
+            <el-button type="primary" link @click="openDetail(row)">详情</el-button>
             <template v-if="row.status === 0">
               <el-button
-                type="primary"
+                type="success"
                 link
                 :loading="actionLoadingId === row.id"
                 @click="onPay(row)"
@@ -122,11 +144,58 @@ onMounted(() => {
                 取消
               </el-button>
             </template>
-            <span v-else class="muted">—</span>
           </template>
         </el-table-column>
       </el-table>
     </el-card>
+
+    <el-dialog
+      v-model="detailVisible"
+      :title="detailOrder ? `订单详情 ${detailOrder.orderNo}` : '订单详情'"
+      width="560px"
+    >
+      <template v-if="detailOrder">
+        <el-descriptions :column="1" border class="mb12">
+          <el-descriptions-item label="订单号">{{ detailOrder.orderNo }}</el-descriptions-item>
+          <el-descriptions-item v-if="isAdmin" label="用户名">
+            {{ detailOrder.username || '—' }}
+          </el-descriptions-item>
+          <el-descriptions-item label="金额">¥{{ detailOrder.payAmount }}</el-descriptions-item>
+          <el-descriptions-item label="状态">
+            <el-tag :type="statusType(detailOrder.status)" size="small">
+              {{ statusLabel(detailOrder.status) }}
+            </el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="创建时间">
+            {{ formatDateTime(detailOrder.createdAt) }}
+          </el-descriptions-item>
+        </el-descriptions>
+
+        <div class="items-title">商品明细</div>
+        <el-table :data="detailOrder.items || []" border size="small">
+          <el-table-column label="商品" min-width="160">
+            <template #default="{ row }">
+              {{ row.productName || `商品#${row.productId}` }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="qty" label="数量" width="80" align="center" />
+          <el-table-column label="单价" width="100" align="right">
+            <template #default="{ row }">
+              ¥{{ row.price }}
+            </template>
+          </el-table-column>
+          <el-table-column label="小计" width="100" align="right">
+            <template #default="{ row }">
+              ¥{{ Number(row.price) * Number(row.qty) }}
+            </template>
+          </el-table-column>
+        </el-table>
+        <div v-if="!detailOrder.items?.length" class="muted empty-tip">暂无明细</div>
+      </template>
+      <template #footer>
+        <el-button @click="detailVisible = false">关闭</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -145,5 +214,16 @@ onMounted(() => {
 .muted {
   color: #94a3b8;
   font-size: 12px;
+}
+.mb12 {
+  margin-bottom: 12px;
+}
+.items-title {
+  margin: 8px 0;
+  font-weight: 600;
+  color: #0f172a;
+}
+.empty-tip {
+  margin-top: 8px;
 }
 </style>

@@ -2,6 +2,7 @@ package com.ry.shop.controller;
 
 import com.ry.shop.common.Result;
 import com.ry.shop.dto.order.OrderCreate;
+import com.ry.shop.dto.order.OrderVO;
 import com.ry.shop.entity.Order;
 import com.ry.shop.service.OrderService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -32,15 +33,16 @@ public class OrderController {
 
     @GetMapping 
     @RequiresPermission("order:list")
-    public Result<List<Order>> listMine(HttpServletRequest request) {
+    public Result<List<OrderVO>> listMine(HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
-        return Result.ok(orderService.listMine(userId));
+        return Result.ok(orderService.listForUser(userId));
     }
 
     @GetMapping("/{id}")
     @RequiresPermission("order:list")
-    public Result<Order> getById(@PathVariable Long id) {
-        Order order = orderService.getById(id);
+    public Result<Order> getById(@PathVariable Long id, HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        Order order = orderService.getById(userId, id);
         return Result.ok(order);
     }
 

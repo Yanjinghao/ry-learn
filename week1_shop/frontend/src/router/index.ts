@@ -21,7 +21,15 @@ const router = createRouter({
       path: '/',
       name: 'layout',
       component: () => import('@/layouts/AdminLayout.vue'),
-      children: [],
+      children: [
+        // 购物车不走菜单权限，固定挂在布局下
+        {
+          path: 'cart',
+          name: 'CartView',
+          component: () => import('@/views/CartView.vue'),
+          meta: { title: '购物车' },
+        },
+      ],
     },
   ],
 })
@@ -56,6 +64,10 @@ export function logoutAndResetRouter() {
   const auth = useAuthStore()
   removeDynamicRoutes(router)
   auth.clearAuth()
+  // 退出时清空购物车（动态 import 避免循环依赖问题）
+  import('@/stores/cart').then(({ useCartStore }) => {
+    useCartStore().clear()
+  })
 }
 
 export default router

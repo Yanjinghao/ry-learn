@@ -65,6 +65,12 @@ public class PermissionService {
         return codes;
     }
 
+    /**是否管理员, code包含admin */
+    public boolean isAdmin(Long userId) {
+        List<String> codes = listRoleCodes(userId);
+        return codes.contains("admin");
+    }
+
     /** 查用户能看到的全部菜单（含按钮），按 sort 排序 */
     public List<Menu> listMenusByUserId(Long userId) {
         // 1. 用户 → 角色

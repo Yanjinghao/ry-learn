@@ -8,15 +8,18 @@ import {
   Goods,
   List,
   Menu as MenuIcon,
+  ShoppingCart,
   SwitchButton,
   User,
 } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
+import { useCartStore } from '@/stores/cart'
 import { logoutAndResetRouter } from '@/router'
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
+const cart = useCartStore()
 
 const collapsed = ref(false)
 const asideWidth = computed(() => (collapsed.value ? '64px' : '200px'))
@@ -109,6 +112,11 @@ function logout() {
           <div class="topbar-title">{{ pageTitle }}</div>
         </div>
         <div class="topbar-right">
+          <el-badge :value="cart.totalCount" :hidden="cart.totalCount === 0" :max="99">
+            <el-button text :icon="ShoppingCart" @click="router.push('/cart')">
+              购物车
+            </el-button>
+          </el-badge>
           <span class="user">{{ auth.user?.nickname || auth.user?.username }}</span>
           <el-button text type="danger" :icon="SwitchButton" @click="logout">退出</el-button>
         </div>
